@@ -83,12 +83,15 @@
         </style>
     <style class="shared-css" type="text/css">
 .t {
-	transform-origin: bottom left;
-	z-index: 2;
-	position: absolute;
-	white-space: pre;
-	overflow: visible;
-	line-height: 1.5;
+    position: absolute !important;
+    display: block !important;
+    visibility: visible !important;
+    color: black !important;
+    z-index: 100 !important;
+    transform-origin: bottom left;
+    white-space: pre;
+    overflow: visible;
+    line-height: 1.5;
 }
 .text-container {
 	white-space: pre;
@@ -344,34 +347,34 @@ src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABIcAA0AAAA
         const pages = document.querySelectorAll(".page");
 
         for (let i = 0; i < pages.length; i++) {
-            const page = pages[i];
-            const imgElement = page.querySelector("img");
+            // Text aur transforms ko render hone ka time dena
+            await new Promise(r => setTimeout(r, 1000)); 
             
-            // Image ko ek temporary canvas par draw karein
-            const canvas = document.createElement("canvas");
-            canvas.width = 1286;
-            canvas.height = 1819;
-            const ctx = canvas.getContext("2d");
-            
-            const img = new Image();
-            img.src = imgElement.src;
-            
-            await new Promise((resolve) => {
-                img.onload = () => {
-                    ctx.drawImage(img, 0, 0);
-                    resolve();
-                };
+            const canvas = await html2canvas(pages[i], {
+                scale: 2, // High resolution ke liye
+                useCORS: true,
+                logging: false,
+                // YE SABSE IMPORTANT HAI
+                ignoreElements: (el) => {
+                    return false; // Sab kuch render karo
+                },
+                onclone: (clonedDoc) => {
+                    // Ye ensure karta hai ki transforms properly apply ho
+                    const elements = clonedDoc.querySelectorAll('.t');
+                    elements.forEach(el => {
+                        el.style.display = 'block';
+                        el.style.visibility = 'visible';
+                    });
+                }
             });
-
-            const imgData = canvas.toDataURL("image/jpeg", 1.0); // PNG se JPEG convert karna safe rehta hai
+            
+            const imgData = canvas.toDataURL("image/jpeg", 1.0);
             
             if (i > 0) pdf.addPage([1286, 1819]);
             pdf.addImage(imgData, "JPEG", 0, 0, 1286, 1819);
         }
-        
         pdf.save("1_2_3_merged.pdf");
     } catch (error) {
-        console.error("Error details:", error);
         alert("Error: " + error.message);
     } finally {
         btn.innerText = "Download PDF";
