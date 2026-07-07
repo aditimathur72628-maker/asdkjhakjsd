@@ -347,19 +347,31 @@ src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABIcAA0AAAA
             const page = pages[i];
             const imgElement = page.querySelector("img");
             
-            // Image source nikaalna
-            const imgData = imgElement.src;
-
-            // Agar ye pehla page nahi hai, toh naya page add karo
-            if (i > 0) pdf.addPage([1286, 1819]);
+            // Image ko ek temporary canvas par draw karein
+            const canvas = document.createElement("canvas");
+            canvas.width = 1286;
+            canvas.height = 1819;
+            const ctx = canvas.getContext("2d");
             
-            // Image ko PDF mein daalo (ye SVG/PNG data directly handle karega)
-            pdf.addImage(imgData, "PNG", 0, 0, 1286, 1819);
+            const img = new Image();
+            img.src = imgElement.src;
+            
+            await new Promise((resolve) => {
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                    resolve();
+                };
+            });
+
+            const imgData = canvas.toDataURL("image/jpeg", 1.0); // PNG se JPEG convert karna safe rehta hai
+            
+            if (i > 0) pdf.addPage([1286, 1819]);
+            pdf.addImage(imgData, "JPEG", 0, 0, 1286, 1819);
         }
         
         pdf.save("1_2_3_merged.pdf");
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error details:", error);
         alert("Error: " + error.message);
     } finally {
         btn.innerText = "Download PDF";
