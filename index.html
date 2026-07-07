@@ -347,7 +347,7 @@ src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABIcAA0AAAA
             // html2canvas se capture karein
             const canvas = await html2canvas(pages[i], {
                 scale: 1,
-                useCORS: true,
+                useCORS: false,
                 allowTaint: true
             });
             
