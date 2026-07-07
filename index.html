@@ -335,32 +335,32 @@ src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABIcAA0AAAA
     <script>
         document.getElementById("pdfBtn").addEventListener("click", async function() {
     const btn = document.getElementById("pdfBtn");
-    btn.innerText = "Downloading...";
+    btn.innerText = "Processing...";
     btn.disabled = true;
 
     try {
         const { jsPDF } = window.jspdf;
-        const pages = document.querySelectorAll(".page");
         const pdf = new jsPDF("p", "px", [1286, 1819]);
-        
+        const pages = document.querySelectorAll(".page");
+
         for (let i = 0; i < pages.length; i++) {
-            // html2canvas se capture karein
-            const canvas = await html2canvas(pages[i], {
-                scale: 1,
-                useCORS: false,
-                allowTaint: true
-            });
+            const page = pages[i];
+            const imgElement = page.querySelector("img");
             
-            const imgData = canvas.toDataURL("image/png");
-            
+            // Image source nikaalna
+            const imgData = imgElement.src;
+
+            // Agar ye pehla page nahi hai, toh naya page add karo
             if (i > 0) pdf.addPage([1286, 1819]);
+            
+            // Image ko PDF mein daalo (ye SVG/PNG data directly handle karega)
             pdf.addImage(imgData, "PNG", 0, 0, 1286, 1819);
         }
         
         pdf.save("1_2_3_merged.pdf");
     } catch (error) {
-        console.error("Error details:", error);
-        alert("PDF download mein error aa rahi hai: " + error.message);
+        console.error("Error:", error);
+        alert("Error: " + error.message);
     } finally {
         btn.innerText = "Download PDF";
         btn.disabled = false;
