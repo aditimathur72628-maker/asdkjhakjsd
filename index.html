@@ -351,22 +351,26 @@ src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABIcAA0AAAA
             await new Promise(r => setTimeout(r, 1000)); 
             
             const canvas = await html2canvas(pages[i], {
-                scale: 2, // High resolution ke liye
-                useCORS: true,
-                logging: false,
-                // YE SABSE IMPORTANT HAI
-                ignoreElements: (el) => {
-                    return false; // Sab kuch render karo
-                },
-                onclone: (clonedDoc) => {
-                    // Ye ensure karta hai ki transforms properly apply ho
-                    const elements = clonedDoc.querySelectorAll('.t');
-                    elements.forEach(el => {
-                        el.style.display = 'block';
-                        el.style.visibility = 'visible';
-                    });
-                }
-            });
+    scale: 2,
+    useCORS: true,
+    logging: false,
+    // Add this to ensure it grabs the correct styling
+    allowTaint: true,
+    removeContainer: true,
+    backgroundColor: null,
+    // Ye line crucial hai:
+    windowWidth: pages[i].scrollWidth,
+    windowHeight: pages[i].scrollHeight,
+    onclone: (clonedDoc) => {
+        // Isse hum force kar rahe hain ki saare text elements display ho
+        const elements = clonedDoc.querySelectorAll('.t');
+        elements.forEach(el => {
+            el.style.setProperty('display', 'block', 'important');
+            el.style.setProperty('visibility', 'visible', 'important');
+            el.style.setProperty('opacity', '1', 'important');
+        });
+    }
+});
             
             const imgData = canvas.toDataURL("image/jpeg", 1.0);
             
