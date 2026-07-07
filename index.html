@@ -3,7 +3,7 @@
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     
     <title>1_2_3_merged.pdf</title>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         #pdfBtn {
@@ -334,42 +334,38 @@ src: url(data:application/font-woff;charset=utf-8;base64,d09GRgABAAAAABIcAA0AAAA
 
     <script>
         document.getElementById("pdfBtn").addEventListener("click", async function() {
-            const btn = document.getElementById("pdfBtn");
-            btn.innerText = "Downloading...";
-            btn.disabled = true;
+    const btn = document.getElementById("pdfBtn");
+    btn.innerText = "Downloading...";
+    btn.disabled = true;
 
-            const { jsPDF } = window.jspdf;
-            const pages = document.querySelectorAll(".page");
-            const pdf = new jsPDF({
-                unit: "px",
-                format: [1286, 1819],
-                orientation: "portrait"
+    try {
+        const { jsPDF } = window.jspdf;
+        const pages = document.querySelectorAll(".page");
+        const pdf = new jsPDF("p", "px", [1286, 1819]);
+        
+        for (let i = 0; i < pages.length; i++) {
+            // html2canvas se capture karein
+            const canvas = await html2canvas(pages[i], {
+                scale: 1,
+                useCORS: true,
+                allowTaint: true
             });
             
-            for (let i = 0; i < pages.length; i++) {
-                const page = pages[i];
-                await new Promise(resolve => setTimeout(resolve, 100));
-                
-                const dataUrl = await domtoimage.toPng(page, {
-                    width: 1286,
-                    height: 1819,
-                    quality: 1,
-                    bgcolor: "#ffffff"
-                });
-                
-                const imgData = dataUrl.replace("data:image/png;base64,", "");
-                
-                if (i > 0) {
-                    pdf.addPage([1286, 1819]);
-                }
-                pdf.addImage(imgData, "PNG", 0, 0, 1286, 1819);
-            }
+            const imgData = canvas.toDataURL("image/png");
             
-            pdf.save("1_2_3_merged.pdf");
-            
-            btn.innerText = "Download PDF";
-            btn.disabled = false;
-        });
+            if (i > 0) pdf.addPage([1286, 1819]);
+            pdf.addImage(imgData, "PNG", 0, 0, 1286, 1819);
+        }
+        
+        pdf.save("1_2_3_merged.pdf");
+    } catch (error) {
+        console.error("Error details:", error);
+        alert("PDF download mein error aa rahi hai: " + error.message);
+    } finally {
+        btn.innerText = "Download PDF";
+        btn.disabled = false;
+    }
+});
     </script>
 
 <div class="page-container">
